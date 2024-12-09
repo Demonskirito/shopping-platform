@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>订单详情</title>
+  <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <button class="nav-button" onclick="window.location.href='/';">返回界面</button>
+  </div>
+</header>
+
+<main>
+  <div class="order-detail">
+    <h3>订单详情</h3>
+    <p>商品名称: <span id="product-name"></span></p>
+    <p>订单价格: <span id="order-price"></span></p>
+    <p>创建时间: <span id="create-time"></span></p>
+    <p>订单信息: <span id="order-information"></span></p>
+
+    <div class="order-buttons">
+      <button class="cancel-order" onclick="cancelOrder()">取消订单</button>
+      <button class="pay-order" onclick="payOrder()">支付订单</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 获取订单数据并显示在页面上
+  const orderData = JSON.parse(localStorage.getItem('orderData'));
+
+  if (orderData) {
+    document.getElementById('product-name').textContent = orderData.productName;
+    document.getElementById('order-price').textContent = orderData.price;
+    document.getElementById('create-time').textContent = orderData.createTime;
+    document.getElementById('order-information').textContent = orderData.information;
+  }
+
+  // 取消订单
+  function cancelOrder() {
+    const paymentData = {
+      uuid: orderData.uuid,  // 生成唯一的订单号
+      price: orderData.price,
+      createTime: new Date().toISOString(),
+      information: orderData.information,
+      onlyid: orderData.onlyid,
+      status: 0  // 支付取消后状态为 1
+    };
+
+    // 发送 POST 请求到后端
+    fetch('http://localhost:8081/payment/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(paymentData)
+    })
+      .then(response => {
+        if (response.ok) {
+          alert('支付取消');
+          window.location.href = '/';  // 跳转到支付成功页面
+        } else {
+          alert('请稍后再试');
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        alert('请稍后再试');
+      });
+  }
+
+  // 支付订单
+  function payOrder() {
+    const paymentData = {
+      uuid: orderData.uuid,  // 生成唯一的订单号
+      price: orderData.price,
+      createTime: new Date().toISOString(),
+      information: orderData.information,
+      onlyid: orderData.onlyid,
+      status: 1  // 支付完成后状态为 1
+    };
+
+    // 发送 POST 请求到后端
+    fetch('http://localhost:8081/payment/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(paymentData)
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('支付成功');
+                window.location.href = '/';  // 跳转到支付成功页面
+              } else {
+                alert('支付失败，请稍后再试');
+              }
+            })
+            .catch(error => {
+              console.error('支付失败:', error);
+              alert('支付失败，请稍后再试');
+            });
+  }
+
+
+</script>
+
+</body>
+</html>

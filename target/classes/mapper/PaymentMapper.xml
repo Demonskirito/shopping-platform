@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.shopping.mapper.PaymentMapper">
+
+
+    <resultMap id="PaymentMap" type="com.example.shopping.pojo.Payment">
+        <result property="onlyid" column="onlyid"/>
+        <result property="uuid" column="uuid"/>
+        <result property="price" column="price"/>
+        <result property="createTime" column="create_time"/>
+        <result property="information" column="information"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+
+
+    <select id="selectByOnlyid" resultMap="PaymentMap">
+        select * from payment where onlyid = #{onlyid};
+    </select>
+
+</mapper>
+
+

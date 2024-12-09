@@ -1,0 +1,81 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 0;
+}
+
+.header-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+/* user-info 区域的样式 */
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.nav-button {
+    background-color: #555;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.nav-button:hover {
+    background-color: #777;
+}
+
+main {
+    padding: 20px;
+}
+
+.product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    text-align: center;
+}
+
+.product-card img {
+    width: 100%;
+    height: auto;
+}
+
+.product-name {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.product-price {
+    font-size: 16px;
+    color: #f00;
+}
+
+.view-details{
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    background-color: #f60;
+    color: white;
+}

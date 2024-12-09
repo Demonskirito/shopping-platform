@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品页面</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <!-- 登录按钮 -->
+        <button class="nav-button" id="login-button" onclick="goToLogin()">登录</button>
+
+        <!-- 头像和退出按钮区域 -->
+        <div class="user-info" id="user-info" style="display: none;">
+            <img id="user-avatar" src="" alt="用户头像" class="user-avatar">
+            <button class="nav-button" onclick="logout()">退出</button>
+        </div>
+
+        <button class="nav-button" onclick="goToCar()">购物车</button>
+        <button class="nav-button" onclick="goToOrder()">我的订单</button>
+        <button class="nav-button" onclick="goToActivity()">活动</button>
+    </div>
+</header>
+
+<main>
+    <div class="product-list"></div>
+</main>
+
+<script>
+    // 检查是否已登录并更新页面内容
+    function checkLoginStatus() {
+        const onlyid = localStorage.getItem('onlyid');
+        const loginButton = document.getElementById('login-button');
+        const userInfo = document.getElementById('user-info');
+        const userAvatar = document.getElementById('user-avatar');
+
+        if (onlyid) {
+            // 如果已经登录，隐藏登录按钮，显示用户信息（头像 + 退出按钮）
+            loginButton.style.display = 'none';
+            userInfo.style.display = 'flex';  // 显示用户信息部分
+
+            // 假设头像存在于 localStorage 或其他地方
+            const userPortrait = localStorage.getItem('portrait');
+            if (userPortrait) {
+                userAvatar.src = userPortrait;  // 设置头像
+            }
+        } else {
+            // 如果没有登录，显示登录按钮
+            loginButton.style.display = 'inline-block';
+            userInfo.style.display = 'none';  // 隐藏用户信息部分
+        }
+    }
+
+    // 页面加载时检查登录状态
+    checkLoginStatus();
+
+    // 获取产品数据
+    fetch('http://localhost:8081/product/allProduct')
+        .then(response => response.json())
+        .then(data => {
+            const productList = document.querySelector('.product-list');
+
+            // 遍历数据并生成产品卡片
+            data.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.classList.add('product-card');
+                productCard.innerHTML = `
+                    <img src="${product.productImg}" alt="${product.productName}">
+                    <h3 class="product-name">${product.productName}</h3>
+                    <p class="product-price">${product.price}</p>
+                    <button class="view-details" onclick="viewDetails(${product.id})">查看详情</button>
+                `;
+                productList.appendChild(productCard);
+            });
+        })
+        .catch(error => console.error('获取产品数据失败:', error));
+
+    // 查看详情跳转
+    function viewDetails(id) {
+        window.location.href = `details.html?id=${id}`;
+    }
+
+    // 登录按钮跳转
+    function goToLogin() {
+        window.location.href = '/login';  // 浏览器跳转到 /login 页面
+    }
+
+    function goToCar(){
+        window.location.href = '/car';
+    }
+
+    function goToOrder(){
+        window.location.href = '/order';
+    }
+
+    function goToActivity(){
+        window.location.href = '/activity';
+    }
+    // 退出登录功能
+    function logout() {
+        // 清除 localStorage 中的登录凭证
+        localStorage.removeItem('onlyid');
+        localStorage.removeItem('portrait');  // 清除头像
+        // 重新加载页面，隐藏用户信息并显示登录按钮
+        checkLoginStatus();
+    }
+</script>
+
+</body>
+</html>

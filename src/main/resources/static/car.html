@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车</title>
+    <link rel="stylesheet" href="./css/car.css">
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <!-- 登录按钮（默认显示） -->
+        <button class="nav-button" id="login-button" onclick="goToLogin()">登录</button>
+
+        <!-- 用户信息区域（默认隐藏） -->
+        <div class="user-info" id="user-info" style="display: none;">
+            <img class="user-avatar" id="user-avatar" src="" alt="用户头像" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+            <button class="nav-button" onclick="logout()">退出</button>
+        </div>
+
+        <button class="nav-button" onclick="goToCar()">购物车</button>
+        <button class="nav-button" onclick="goToOrder()">我的订单</button>
+    </div>
+</header>
+
+<main>
+    <div class="cart-container">
+        <h2>购物车</h2>
+        <div class="cart-items" id="cart-items">
+            <!-- 购物车商品列表 -->
+        </div>
+        <div class="checkout-container">
+            <button class="nav-button" id="checkout-button" onclick="checkout()">结账</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    // 获取登录状态
+    const onlyid = localStorage.getItem('onlyid');
+    const loginButton = document.getElementById('login-button');
+    const userInfoSection = document.getElementById('user-info');
+    const userAvatar = document.getElementById('user-avatar');
+    const cartItemsContainer = document.getElementById('cart-items');
+    const checkoutButton = document.getElementById('checkout-button');
+
+    if (onlyid) {
+        // 用户已登录，隐藏登录按钮，显示用户信息
+        loginButton.style.display = 'none';
+        userInfoSection.style.display = 'flex';
+
+        // 假设头像存在于 localStorage 或其他地方
+        const userPortrait = localStorage.getItem('portrait');
+        if (userPortrait) {
+            userAvatar.src = userPortrait;  // 设置头像
+        }
+
+        // 获取购物车商品
+        fetch(`http://localhost:8081/car/findByOnlyid/${onlyid}`)
+            .then(response => response.json())
+            .then(cartData => {
+                // 如果购物车为空
+                if (cartData.length === 0) {
+                    cartItemsContainer.innerHTML = "<p>购物车里还没有商品，请去购物吧！</p>";
+                } else {
+                    cartData.forEach(item => {
+                        const cartItem = document.createElement('div');
+                        cartItem.classList.add('cart-item');
+                        cartItem.innerHTML = `
+                            <input type="checkbox" class="cart-item-checkbox" data-id="${item.id}">
+                            <img src="${item.productImage}" alt="${item.productName}" class="cart-item-image">
+                            <p>${item.productName}</p>
+                            <p>${item.price}</p>
+                            <button class="nav-button" onclick="deleteItem(${item.id})">删除</button>
+                        `;
+                        cartItemsContainer.appendChild(cartItem);
+                    });
+                }
+            })
+            .catch(error => console.error('获取购物车商品失败:', error));
+    } else {
+        // 用户未登录，显示登录按钮，隐藏用户信息
+        loginButton.style.display = 'block';
+        userInfoSection.style.display = 'none';
+        cartItemsContainer.innerHTML = "<p>请先登录才能查看购物车！</p>";
+    }
+
+    // 删除购物车商品
+    function deleteItem(id) {
+        fetch(`http://localhost:8081/car/deleteById/${id}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('商品已删除');
+                    // 删除成功后刷新购物车
+                    window.location.reload();
+                } else {
+                    alert('删除失败，请稍后再试');
+                }
+            })
+            .catch(error => console.error('删除商品失败:', error));
+    }
+
+    function checkout() {
+        const selectedItems = [];
+        const selectedItemNames = [];
+        const checkboxes = document.querySelectorAll('.cart-item-checkbox:checked');
+        let totalPrice = 0; // 总价格
+
+        checkboxes.forEach(checkbox => {
+            const itemElement = checkbox.closest('.cart-item');
+            const itemId = checkbox.getAttribute('data-id');
+            const itemImage = itemElement.querySelector('.cart-item-image').src; // 获取商品图片
+            const itemName = itemElement.querySelector('p').textContent; // 商品名称
+            const itemPriceString = itemElement.querySelector('p:nth-of-type(2)').textContent; // 商品价格字符串
+            const itemPrice = parseFloat(itemPriceString.replace(/[^0-9.]/g, '')); // 提取价格数字
+            totalPrice += itemPrice; // 累加价格
+            selectedItemNames.push(itemName); // 保存商品名称
+
+            const itemUUID = itemElement.querySelector('.cart-item-image').getAttribute('data-uuid'); // 商品UUID
+            selectedItems.push({
+                id: itemId,
+                image: itemImage,
+                name: itemName,
+                price: itemPriceString, // 保留原始价格字符串
+                uuid: itemUUID
+            });
+        });
+
+        if (selectedItems.length > 0) {
+            const uuid = generateUUID(); // 生成唯一的订单 UUID
+
+            // 构造订单数据
+            const orderData = {
+                uuid: uuid,
+                productName: selectedItemNames.join(', '), // 将商品名称用逗号连接成字符串
+                items: selectedItems,
+                price: totalPrice.toFixed(2) + '元', // 保留两位小数并添加 "元"
+                createTime: new Date().toISOString(),
+                onlyid: localStorage.getItem('onlyid'),
+                information:"购买了"+selectedItemNames.join(', '),
+            };
+
+            // 将订单数据保存到 localStorage
+            localStorage.setItem('orderData', JSON.stringify(orderData));
+
+            // 提交选中商品的图片和 UUID 到后端接口
+            fetch('http://localhost:8081/paymentImageRequest/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    uuid: uuid,
+                    images: selectedItems.map(item => ({
+                        image: item.image,
+                        uuid: item.uuid
+                    }))
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('结账成功，图片已存储');
+                        // 跳转到订单详情页面
+                        window.location.href = '/order-detail'; // 根据实际路由调整
+                    } else {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('提交图片失败:', error);
+                    alert('提交图片失败，请稍后再试');
+                });
+        } else {
+            alert('请先选择商品进行结账');
+        }
+    }
+
+
+
+    // 跳转到登录页面
+    function goToLogin() {
+        window.location.href = '/login';
+    }
+
+    function goToCar(){
+        window.location.href = '/car';
+    }
+
+    function goToOrder(){
+        window.location.href = '/order';
+    }
+
+    // 退出登录
+    function logout() {
+        // 清除登录状态
+        localStorage.removeItem('onlyid');
+        localStorage.removeItem('portrait');
+        // 刷新页面，回到未登录状态
+        window.location.reload();
+    }
+
+    function generateUUID() {
+        return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, function() {
+            const random = Math.random() * 16 | 0;
+            return random.toString(16);
+        });
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #f60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background-color: #e55300;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>用户登录</h2>
+    <div class="form-group">
+        <label for="phone">手机号</label>
+        <input type="text" id="phone" placeholder="请输入手机号">
+    </div>
+    <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" id="password" placeholder="请输入密码">
+    </div>
+    <button class="login-button" onclick="handleLogin()">登录</button>
+    <p class="error-message" id="error-message">手机号或密码错误，请重试。</p>
+</div>
+
+<script>
+    function handleLogin() {
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!phone || !password) {
+            showError('请输入完整的手机号和密码');
+            return;
+        }
+
+        // 模拟登录请求
+        fetch('http://localhost:8081/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ phone, password })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(data);
+                    localStorage.setItem('onlyid', data.user.onlyid); // 存储登录凭证
+                    localStorage.setItem('portrait', data.user.portrait); // 存储头像
+                    alert('登录成功！');
+                    window.location.href = '/';
+                } else {
+                    showError(data.message || '手机号或密码错误');
+                }
+            })
+            .catch(error => {
+                console.error('登录请求失败:', error);
+                showError('网络异常，请稍后重试');
+            });
+    }
+
+    function showError(message) {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
+
