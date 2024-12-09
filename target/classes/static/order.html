@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的订单</title>
+  <link rel="stylesheet" href="./css/order.css">
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <!-- 登录按钮 -->
+    <button class="nav-button" id="login-button" onclick="goToLogin()">登录</button>
+
+    <!-- 头像和退出按钮区域 -->
+    <div class="user-info" id="user-info" style="display: none;">
+      <img id="user-avatar" src="" alt="用户头像" class="user-avatar" style="width: 40px;height: 40px;border-radius: 50%;margin-right: 10px;object-fit: cover;">
+      <button class="nav-button" onclick="logout()">退出</button>
+    </div>
+
+    <button class="nav-button" onclick="goToCar()">购物车</button>
+    <button class="nav-button" onclick="goToOrder()">我的订单</button>
+    <button class="nav-button" onclick="goToActivity()">活动</button>
+  </div>
+</header>
+
+<main>
+  <div class="order-container" id="order-container">
+    <p id="login-prompt" style="display: none;">请先登录查看您的订单。</p>
+    <div class="order-list"></div>
+  </div>
+</main>
+
+<script>
+  // 检查是否已登录并更新页面内容
+  function checkLoginStatus() {
+    const onlyid = localStorage.getItem('onlyid');
+    const loginButton = document.getElementById('login-button');
+    const userInfo = document.getElementById('user-info');
+    const userAvatar = document.getElementById('user-avatar');
+    const orderContainer = document.getElementById('order-container');
+    const loginPrompt = document.getElementById('login-prompt');
+    const orderList = document.querySelector('.order-list');
+
+    if (onlyid) {
+      // 如果已经登录，隐藏登录按钮，显示用户信息（头像 + 退出按钮）
+      loginButton.style.display = 'none';
+      userInfo.style.display = 'flex';  // 显示用户信息部分
+
+      // 假设头像存在于 localStorage 或其他地方
+      const userPortrait = localStorage.getItem('portrait');
+      if (userPortrait) {
+        userAvatar.src = userPortrait;  // 设置头像
+      }
+
+      // 获取当前用户的订单数据
+      fetchOrders(onlyid);
+    } else {
+      // 如果没有登录，显示登录按钮并提示登录查看订单
+      loginButton.style.display = 'inline-block';
+      userInfo.style.display = 'none';  // 隐藏用户信息部分
+      loginPrompt.style.display = 'block';  // 提示用户登录
+      orderContainer.innerHTML='<p>您还没有登录。</p>';
+    }
+  }
+
+  // 获取订单数据
+  function fetchOrders(onlyid) {
+    fetch(`http://localhost:8081/payment/findByOnlyid/${onlyid}`)
+            .then(response => response.json())
+            .then(data => {
+              const orderList = document.querySelector('.order-list');
+              if (data.length === 0) {
+                orderList.innerHTML = '<p>您还没有订单。</p>';
+                return;
+              }
+
+              // 遍历订单数据并生成订单卡片
+              data.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.classList.add('order-card');
+                const statusText = order.status === 0 ? '已取消' : '已支付';
+                orderCard.innerHTML = `
+                        <h3>订单号: ${order.uuid}</h3>
+                        <p>订单信息: ${order.information}</p>
+                        <p>价格: ${order.price}</p>
+                        <p>创建时间: ${new Date(order.createTime).toLocaleString()}</p>
+                        <p>订单状态: <span class="${statusText === '已取消' ? 'canceled' : 'paid'}">${statusText}</span></p>
+                        <div class="product-images" id="product-images-${order.uuid}"></div>
+                    `;
+                orderList.appendChild(orderCard);
+
+                // 获取该订单的商品图片
+                fetchProductImages(order.uuid);
+              });
+            })
+            .catch(error => {
+              console.error('获取订单数据失败:', error);
+              alert('获取订单数据失败，请稍后重试。');
+            });
+  }
+
+  // 获取订单商品图片
+  function fetchProductImages(uuid) {
+    fetch(`http://localhost:8081/paymentImage/findByUUID/${uuid}`)
+            .then(response => response.json())
+            .then(images => {
+              const productImagesContainer = document.getElementById(`product-images-${uuid}`);
+              if (images.length > 0) {
+                images.forEach(image => {
+                  const imageElement = document.createElement('img');
+                  imageElement.src = image.image; // 假设返回的对象中有 `imageUrl` 字段
+                  imageElement.alt = '商品图片';
+                  imageElement.classList.add('product-image');
+                  productImagesContainer.appendChild(imageElement);
+                });
+              } else {
+                const noImageText = document.createElement('p');
+                noImageText.textContent = '没有商品图片。';
+                productImagesContainer.appendChild(noImageText);
+              }
+            })
+            .catch(error => {
+              console.error('获取商品图片失败:', error);
+              alert('获取商品图片失败，请稍后重试。');
+            });
+  }
+
+  // 登录按钮跳转
+  function goToLogin() {
+    window.location.href = '/login';  // 浏览器跳转到 /login 页面
+  }
+
+  // 购物车跳转
+  function goToCar() {
+    window.location.href = '/car';
+  }
+
+  function goToOrder(){
+    window.location.href = '/order';
+  }
+
+  function goToActivity(){
+    window.location.href = '/activity';
+  }
+
+  // 退出登录功能
+  function logout() {
+    // 清除 localStorage 中的登录凭证
+    localStorage.removeItem('onlyid');
+    localStorage.removeItem('portrait');  // 清除头像
+    // 重新加载页面，隐藏用户信息并显示登录按钮
+    checkLoginStatus();
+  }
+
+  // 页面加载时检查登录状态
+  checkLoginStatus();
+</script>
+
+</body>
+</html>

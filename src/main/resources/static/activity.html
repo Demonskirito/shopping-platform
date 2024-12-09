@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机热销活动</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background-color: #ff6f61;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .product-section {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .product-image img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .product-details {
+            flex: 2;
+        }
+
+        .product-details h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .product-details p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .product-details .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6f61;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button-group .buy-now {
+            background-color: #ff6f61;
+            color: white;
+        }
+
+        .button-group .buy-now:hover {
+            background-color: #e0554a;
+        }
+
+        .button-group .add-to-cart {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .button-group .add-to-cart:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>限时热销！购买手机享受超值优惠！</h1>
+    </div>
+
+    <div class="product-section">
+        <div class="product-image">
+            <img src="https://tvax3.sinaimg.cn/mw690/008FQ8N7ly1hwa4fo20tkj30kl0nb46a.jpg" alt="手机图片">
+        </div>
+
+        <div class="product-details">
+            <h2>华为 P50 Pro</h2>
+            <p>全新升级，搭载先进的技术与出色的性能，轻松应对各种场景。拥有强大的拍照功能，让你轻松记录每个精彩瞬间！</p>
+            <p><strong>特价促销：限时仅售</strong></p>
+            <p class="price">¥ 4999</p>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function addToCart(productId) {
+        alert('商品 ' + productId + ' 已加入购物车！');
+        // 此处可以进一步实现购物车的逻辑，如通过接口将商品加入购物车
+    }
+</script>
+</body>
+</html>
